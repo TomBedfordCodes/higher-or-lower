@@ -28,6 +28,9 @@ const newGameBtn = document.getElementById("newgame-btn")
 const higherBtn = document.getElementById("higher-btn")
 const lowerBtn = document.getElementById("lower-btn")
 const shuffleBtn = document.getElementById("shuffle-btn")
+const cardsContainer = document.getElementById("cards-container")
+const cardsRemainingText = document.getElementById("cards-remaining")
+const instructionsText = document.getElementById("instructions-text")
 
 
 // OTHER GLOBAL VARS
@@ -36,18 +39,12 @@ let cardToBeat = {}  // To get the card's numerical value for comparison: values
 let drawnCard = {}
 
 
-
 // ON PAGE LOADED
 // localStorage.clear()
 if (localStorage.getItem("deckId")) {
     deckId = localStorage.getItem("deckId")
-    console.log(deckId)
-    newGameBtn.hidden = true
-    higherBtn.hidden = false
-    lowerBtn.hidden = false
-    shuffleBtn.hidden = false
+    gameReady()
 }
-
 
 
 // BUTTON EVENT LISTENERS
@@ -57,39 +54,78 @@ newGameBtn.addEventListener("click", function() {
         .then(data => {
             deckId = data.deck_id
             localStorage.setItem("deckId", deckId)
-            console.log(deckId)
-            newGameBtn.hidden = true
-            higherBtn.hidden = false
-            lowerBtn.hidden = false
-            shuffleBtn.hidden = false
+            gameReady()
         })
 })
 
+
+
+// FINISH LOGIC FOR THESE TWO BTNS
+// MIGHT BE CLEARER WHAT'S HAPPENING WITH A NEXT BTN, COMPARISON CARD MOVED TO THE LEFT
 higherBtn.addEventListener("click", function(){
-    drawnCard = drawCard()
+    drawCard()
+    instructionsText.textContent = "DRINK!"
 })
 
 lowerBtn.addEventListener("click", function(){
-    drawnCard = drawCard()
+
+    drawCard()
 })
+
+
+
+shuffleBtn.addEventListener("click", function() {
+    fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/shuffle/`)
+        .then(res => res.json())
+        .then(data => {
+            clearCards()
+            drawCard()
+        })
+        
+})
+
+
+
+
+
+// HELPER FUNCTIONS
+
+function gameReady() {
+    newGameBtn.hidden = true
+    higherBtn.hidden = false
+    lowerBtn.hidden = false
+    shuffleBtn.hidden = false
+    drawCard()
+}
 
 function drawCard() {
     fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/`)
         .then(res => res.json())
         .then(data => {
-            console.log(data.remaining)  // CHANGE CONSOLE.LOG TO AN ELEMENT SHOWING CARDS REMAINING
-            return data.cards[0]
+            moveRightCardToLeft()
+            cardsRemainingText.hidden = false
+            cardsRemainingText.textContent = `Cards remaining: ${data.remaining}`
+            drawnCard = data.cards[0]
+            displayCard(1, data.cards[0])
         })
+}   
+
+function displayCard(position, card) {
+    // 'position' can be either 0 (left) or 1 (right)
+    cardsContainer.children[position].innerHTML = `
+        <img class="card-img" src="${card.image}">
+    `
 }
 
-shuffleBtn.addEventListener("click", function() {
-    fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/shuffle/`)
-        .then(res => res.json())
-        .then(data => console.log(data))
-})
+function moveRightCardToLeft() {
+    cardsContainer.children[0].innerHTML = cardsContainer.children[1].innerHTML
+    cardsContainer.children[1].innerHTML = ""
+}
 
-
-
+function clearCards() {
+    cardsContainer.children[0].innerHTML = ""
+    cardsContainer.children[1].innerHTML = ""
+}
 
 
 

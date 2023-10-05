@@ -13,18 +13,20 @@
     </head>
     <body>
         <h1>Higher or Lower?</h1>
-        <h2 id="instructions" hidden></h2>
-        <button id="newgame-btn">New game</button>
-        <div class="cards">
+        <h2 id="instructions-text"></h2>
+        <button id="newgame-btn">New Game</button>
+        <div id="cards-container" class="cards">
             <div class="card-placeholder"></div>
             <div class="card-placeholder"></div>
         </div>
         <div>
-            <button id="higher-btn" hidden>Higher</button>
-            <button id="lower-btn" hidden>Lower</button>
+            <button id="higher-btn" class="wide-btn" hidden>Higher ☝️</button>
+            <button id="lower-btn" class="wide-btn" hidden>Lower 👇</button>
         </div>
-        <button id="next" hidden>Next</button>
-        <button id="shuffle-btn" hidden>Shuffle</button>
+        <footer>
+            <button id="shuffle-btn" hidden>Shuffle</button>
+            <h3 id="cards-remaining" hidden>Cards remaining: </h3>
+        </footer>
 
         <script src="./index.js"></script>
     </body>
