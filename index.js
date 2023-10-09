@@ -115,6 +115,7 @@ function gameReady() {
             higherBtn.hidden = false
             lowerBtn.hidden = false
             shuffleBtn.hidden = false
+            nextBtn.hidden = true
             instructionsText.hidden = false
             instructionsText.textContent = "What will the next card be..."
             zeroCardsText.hidden = true
