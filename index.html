@@ -13,8 +13,8 @@
     </head>
     <body>
         <h1>Higher or Lower?</h1>
-        <h2 id="instructions-text"></h2>
         <button id="newgame-btn">New Game</button>
+        <h2 id="instructions-text" hidden>What will the next card be...</h2>
         <div id="cards-container" class="cards">
             <div class="card-placeholder"></div>
             <div class="card-placeholder"></div>
@@ -22,6 +22,8 @@
         <div>
             <button id="higher-btn" class="wide-btn" hidden>Higher ☝️</button>
             <button id="lower-btn" class="wide-btn" hidden>Lower 👇</button>
+            <button id="next-btn" class="wider-btn" hidden>Next round 👉</button>
+            <h2 id="zerocards-text" hidden>Out of cards, shuffle the deck</h2>
         </div>
         <footer>
             <button id="shuffle-btn" hidden>Shuffle</button>

@@ -1,10 +1,4 @@
 
-// PLAN
-// Save the deck of cards in localStorage. Shuffle discard pile when only one left or on page refresh.
-// Have 'higher' or 'lower' buttons; save previous value and compare drawn card.
-// Display 'Drink!' or 'Correct! Next player' etc.
-
-
 // CONVERT CARD API VALUES TO COMPARABLE VALUES
 const values = {
     "ACE": 1,
@@ -31,16 +25,21 @@ const shuffleBtn = document.getElementById("shuffle-btn")
 const cardsContainer = document.getElementById("cards-container")
 const cardsRemainingText = document.getElementById("cards-remaining")
 const instructionsText = document.getElementById("instructions-text")
+const nextBtn = document.getElementById("next-btn")
+const zeroCardsText = document.getElementById("zerocards-text")
 
 
 // OTHER GLOBAL VARS
 let deckId = ""
-let cardToBeat = {}  // To get the card's numerical value for comparison: values[card.value]
+let cardToBeat = {}  // To get the card's numerical value for comparison use: values[card.value]
 let drawnCard = {}
 
 
-// ON PAGE LOADED
+// CLEAR MEMORY FOR TESTING WITH NEW DECK
 // localStorage.clear()
+
+
+// ON PAGE LOADED
 if (localStorage.getItem("deckId")) {
     deckId = localStorage.getItem("deckId")
     gameReady()
@@ -49,6 +48,8 @@ if (localStorage.getItem("deckId")) {
 
 // BUTTON EVENT LISTENERS
 newGameBtn.addEventListener("click", function() {
+    // Two-card deck for testing
+    // fetch("https://www.deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S")
     fetch("https://www.deckofcardsapi.com/api/deck/new/shuffle/")
         .then(res => res.json())
         .then(data => {
@@ -58,30 +59,47 @@ newGameBtn.addEventListener("click", function() {
         })
 })
 
-
-
-// FINISH LOGIC FOR THESE TWO BTNS
-// MIGHT BE CLEARER WHAT'S HAPPENING WITH A NEXT BTN, COMPARISON CARD MOVED TO THE LEFT
 higherBtn.addEventListener("click", function(){
-    drawCard()
-    instructionsText.textContent = "DRINK!"
+    onGuess()
+        .then(_ => {
+            if (card1IsHigherThanCard2(cardToBeat, drawnCard)) {
+                instructionsText.textContent = "IT WAS LOWER - DRINKK!!!"
+            } else if (card1IsEqualToCard2(drawnCard, cardToBeat)) {
+                instructionsText.textContent = "THEY WERE THE SAME - DRINKK!!!"
+            } else {
+                instructionsText.textContent = "GOOD GUESS, NEXT PLAYER IS UP..."
+            }
+        postGuess()})
 })
 
 lowerBtn.addEventListener("click", function(){
-
-    drawCard()
+    onGuess()
+        .then(_ => {
+            if (card1IsHigherThanCard2(drawnCard, cardToBeat)) {
+                instructionsText.textContent = "IT WAS HIGHER - DRINKK!!!"
+            } else if (card1IsEqualToCard2(drawnCard, cardToBeat)) {
+                instructionsText.textContent = "THEY WERE THE SAME - DRINKK!!!"
+            } else {
+                instructionsText.textContent = "GOOD GUESS, NEXT PLAYER IS UP..."
+            }
+            postGuess()})
 })
 
-
+nextBtn.addEventListener("click", function() {
+    moveRightCardToLeft()
+    higherBtn.hidden = false
+    lowerBtn.hidden = false
+    nextBtn.hidden = true
+    instructionsText.textContent = "What will the next card be..."
+})
 
 shuffleBtn.addEventListener("click", function() {
     fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/shuffle/`)
         .then(res => res.json())
         .then(data => {
             clearCards()
-            drawCard()
+            gameReady()
         })
-        
 })
 
 
@@ -89,20 +107,24 @@ shuffleBtn.addEventListener("click", function() {
 
 
 // HELPER FUNCTIONS
-
 function gameReady() {
-    newGameBtn.hidden = true
-    higherBtn.hidden = false
-    lowerBtn.hidden = false
-    shuffleBtn.hidden = false
     drawCard()
+        .then(_ => {
+            moveRightCardToLeft()
+            newGameBtn.hidden = true
+            higherBtn.hidden = false
+            lowerBtn.hidden = false
+            shuffleBtn.hidden = false
+            instructionsText.hidden = false
+            instructionsText.textContent = "What will the next card be..."
+            zeroCardsText.hidden = true
+        })
 }
 
 function drawCard() {
-    fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/`)
+    return fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/`)
         .then(res => res.json())
         .then(data => {
-            moveRightCardToLeft()
             cardsRemainingText.hidden = false
             cardsRemainingText.textContent = `Cards remaining: ${data.remaining}`
             drawnCard = data.cards[0]
@@ -120,12 +142,37 @@ function displayCard(position, card) {
 function moveRightCardToLeft() {
     cardsContainer.children[0].innerHTML = cardsContainer.children[1].innerHTML
     cardsContainer.children[1].innerHTML = ""
+    cardToBeat = drawnCard
+    drawnCard = {}
 }
 
 function clearCards() {
     cardsContainer.children[0].innerHTML = ""
     cardsContainer.children[1].innerHTML = ""
+    cardToBeat = {}
+    drawnCard = {}
 }
 
+function onGuess() {
+    return drawCard()
+        .then(_ => {    
+            higherBtn.hidden = true
+            lowerBtn.hidden = true
+            nextBtn.hidden = false
+        }) 
+}
 
+function postGuess() {
+    if (cardsRemainingText.textContent === "Cards remaining: 0") {
+        zeroCardsText.hidden = false
+        nextBtn.hidden = true
+    }
+}
 
+function card1IsHigherThanCard2(card1, card2) {
+    return values[card1.value] > values[card2.value]
+}
+
+function card1IsEqualToCard2(card1, card2) {
+    return values[card1.value] === values[card2.value]
+}
